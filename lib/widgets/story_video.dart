@@ -25,8 +25,8 @@ class VideoLoader {
       onComplete();
     }
 
-    final fileStream = DefaultCacheManager()
-        .getFileStream(this.url, headers: this.requestHeaders as Map<String, String>?);
+    final fileStream = DefaultCacheManager().getFileStream(this.url,
+        headers: this.requestHeaders as Map<String, String>?);
 
     fileStream.listen((fileResponse) {
       if (fileResponse is FileInfo) {
@@ -45,7 +45,7 @@ class StoryVideo extends StatefulWidget {
   final VideoLoader videoLoader;
 
   StoryVideo(this.videoLoader, {this.storyController, Key? key})
-      : super(key: key ?? UniqueKey());
+      : super(key: key ?? ValueKey(videoLoader.url));
 
   static StoryVideo url(String url,
       {StoryController? controller,

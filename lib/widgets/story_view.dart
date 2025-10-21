@@ -521,6 +521,26 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
   }
 
   @override
+  void didUpdateWidget(StoryView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Preserve story progress during hot reload
+    if (oldWidget.storyItems.length == widget.storyItems.length) {
+      // Find the current story index from old widget
+      final oldCurrentIndex =
+          oldWidget.storyItems.indexWhere((it) => !it!.shown);
+      if (oldCurrentIndex >= 0) {
+        // Mark stories as shown up to the current one in the new widget
+        for (int i = 0;
+            i < oldCurrentIndex && i < widget.storyItems.length;
+            i++) {
+          widget.storyItems[i]!.shown = true;
+        }
+      }
+    }
+  }
+
+  @override
   void dispose() {
     _clearDebouncer();
 
@@ -668,7 +688,6 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                       .map((it) => PageData(it!.duration, it.shown))
                       .toList(),
                   this._currentAnimation,
-                  key: UniqueKey(),
                   indicatorHeight: widget.inline
                       ? IndicatorHeight.small
                       : IndicatorHeight.large,

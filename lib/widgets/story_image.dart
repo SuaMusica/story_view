@@ -79,7 +79,7 @@ class StoryImage extends StatefulWidget {
     Key? key,
     this.controller,
     this.fit,
-  }) : super(key: key ?? UniqueKey());
+  }) : super(key: key ?? ValueKey(imageLoader.url));
 
   /// Use this shorthand to fetch images/gifs from the provided [url]
   factory StoryImage.url(
