@@ -530,11 +530,59 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
       final oldCurrentIndex =
           oldWidget.storyItems.indexWhere((it) => !it!.shown);
       if (oldCurrentIndex >= 0) {
+        // Capture current animation state before updating
+        final currentAnimationValue = _currentAnimation?.value ?? 0.0;
+        final wasAnimating = _animationController?.isAnimating ?? false;
+
         // Mark stories as shown up to the current one in the new widget
         for (int i = 0;
             i < oldCurrentIndex && i < widget.storyItems.length;
             i++) {
           widget.storyItems[i]!.shown = true;
+        }
+
+        // Recreate animation controller with preserved progress
+        if (currentAnimationValue > 0.0) {
+          // Stop and dispose old controller
+          _animationController?.stop();
+          _animationController?.dispose();
+
+          final currentStory = widget.storyItems[oldCurrentIndex]!;
+
+          // Create new controller
+          _animationController = AnimationController(
+            duration: currentStory.duration,
+            vsync: this,
+          );
+
+          // Set the preserved value
+          _animationController!.value = currentAnimationValue;
+
+          // Add listener for completion
+          _animationController!.addStatusListener((status) {
+            if (status == AnimationStatus.completed) {
+              currentStory.shown = true;
+              if (widget.storyItems.last != currentStory) {
+                _beginPlay();
+              } else {
+                _onComplete();
+              }
+            }
+          });
+
+          // Recreate animation
+          _currentAnimation =
+              Tween(begin: 0.0, end: 1.0).animate(_animationController!);
+
+          // Trigger UI rebuild with new animation
+          setState(() {});
+
+          // Resume animation if it was playing
+          if (wasAnimating) {
+            // Use forward(from:) to continue from current value
+            _animationController!.forward();
+            widget.controller.play();
+          }
         }
       }
     }
@@ -808,9 +856,28 @@ class PageBarState extends State<PageBar> {
     int count = widget.pages.length;
     spacing = (count > 15) ? 1 : ((count > 10) ? 2 : 4);
 
-    widget.animation!.addListener(() {
-      setState(() {});
-    });
+    widget.animation?.addListener(_updateState);
+  }
+
+  @override
+  void didUpdateWidget(PageBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // If animation changed, update listener
+    if (oldWidget.animation != widget.animation) {
+      oldWidget.animation?.removeListener(_updateState);
+      widget.animation?.addListener(_updateState);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.animation?.removeListener(_updateState);
+    super.dispose();
+  }
+
+  void _updateState() {
+    setState(() {});
   }
 
   @override
