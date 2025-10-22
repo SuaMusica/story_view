@@ -529,7 +529,34 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
       // Find the current story index from old widget
       final oldCurrentIndex =
           oldWidget.storyItems.indexWhere((it) => !it!.shown);
-      if (oldCurrentIndex >= 0) {
+
+      // Check if all stories were completed (on last page finished)
+      final allStoriesCompleted = oldCurrentIndex == -1;
+
+      if (allStoriesCompleted) {
+        // Mark all stories in new widget as shown to stay on last page
+        for (int i = 0; i < widget.storyItems.length; i++) {
+          widget.storyItems[i]!.shown = true;
+        }
+
+        // Stop any animation and keep controller paused
+        _animationController?.stop();
+        _animationController?.dispose();
+
+        // Create a completed animation controller for the last story
+        final lastStory = widget.storyItems.last!;
+        _animationController = AnimationController(
+          duration: lastStory.duration,
+          vsync: this,
+        );
+        _animationController!.value = 1.0; // Set to complete
+
+        _currentAnimation =
+            Tween(begin: 0.0, end: 1.0).animate(_animationController!);
+
+        widget.controller.pause();
+        setState(() {});
+      } else if (oldCurrentIndex >= 0) {
         // Capture current animation state before updating
         final currentAnimationValue = _currentAnimation?.value ?? 0.0;
         final wasAnimating = _animationController?.isAnimating ?? false;
