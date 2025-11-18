@@ -32,12 +32,17 @@ class StoryItem {
   /// story item.
   bool shown;
 
+  /// The configuration of the story item.
+  /// used to identify the story item in the story view.
+  final String configuration;
+
   /// The page content
   final Widget view;
   StoryItem(
     this.view, {
     required this.duration,
     this.shown = false,
+    this.configuration = '',
   });
 
   /// Short hand to create text-only page.
