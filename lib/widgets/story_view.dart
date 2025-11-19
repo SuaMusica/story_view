@@ -36,6 +36,9 @@ class StoryItem {
   /// used to identify the story item in the story view.
   final String configuration;
 
+  /// The index of the story item in the story view.
+  int index;
+
   /// The page content
   final Widget view;
   StoryItem(
@@ -43,6 +46,7 @@ class StoryItem {
     required this.duration,
     this.shown = false,
     this.configuration = '',
+    this.index = 0,
   });
 
   /// Short hand to create text-only page.
@@ -475,6 +479,11 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+
+    // Set index for each storyItem
+    widget.storyItems.asMap().forEach((index, it) {
+      it!.index = index;
+    });
 
     // All pages after the first unshown page should have their shown value as
     // false
